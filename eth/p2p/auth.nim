@@ -486,12 +486,12 @@ proc decodeAckMessageV4(h: var Handshake, m: openArray[byte]): AuthResult[void] 
 proc decodeAuthMessage*(h: var Handshake, input: openArray[byte]): AuthResult[void] =
   ## Decodes AuthMessage from `input`.
   # Using the smallest min. message length of the two types
-  if len(input) < AuthMessageEIP8Length:
-    return err(AuthError.IncompleteError)
+  # if len(input) < AuthMessageEIP8Length:
+  #   return err(AuthError.IncompleteError)
 
-  if len(input) == AuthMessageV4Length:
-    let res = h.decodeAuthMessageV4(input)
-    if res.isOk(): return res
+  # if len(input) == AuthMessageV4Length:
+  #   let res = h.decodeAuthMessageV4(input)
+  #   if res.isOk(): return res
 
   let res = h.decodeAuthMessageEIP8(input)
   if res.isOk():

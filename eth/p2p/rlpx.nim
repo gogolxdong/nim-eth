@@ -8,7 +8,7 @@
 {.push raises: [].}
 
 import
-  std/[tables, algorithm, deques, hashes, options, typetraits, os],
+  std/[tables, algorithm, deques, hashes, options, typetraits, os, endians],
   stew/shims/macros, chronicles, nimcrypto/utils, chronos, metrics,
   ".."/[rlp, common, keys, async_utils],
   ./private/p2p_types, "."/[kademlia, auth, rlpxcrypt, enode, p2p_protocol_dsl]
@@ -1405,11 +1405,16 @@ proc rlpxAccept*(
   var ok = false
   try:
     let initialSize = handshake.expectedLength
+    var size:array[2, byte]
+    var prefixSize:uint16
+    await transport.readExactly(addr size[0], len(size))
+    bigEndian16(prefixSize.addr, size.addr)
+
     var authMsg = newSeqOfCap[byte](1024)
 
     authMsg.setLen(initialSize)
     # TODO: Should we not set some timeouts on these `readExactly`s?
-    await transport.readExactly(addr authMsg[0], len(authMsg))
+    await transport.readExactly(addr authMsg[0], int prefixSize)
     var ret = handshake.decodeAuthMessage(authMsg)
     if ret.isErr and ret.error == AuthError.IncompleteError:
       # Eip8 auth message is possible, but not likely
